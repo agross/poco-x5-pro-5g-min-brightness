@@ -6,8 +6,6 @@
 BRIGHTNESS_FILE=/sys/class/backlight/panel0-backlight/brightness
 BRIGHTNESS="$(cat "$BRIGHTNESS_FILE")"
 
-echo "Current brightness: $BRIGHTNESS"
-
 if [ "$BRIGHTNESS" -lt 15 ]; then
   echo 15 > "$BRIGHTNESS_FILE"
 fi

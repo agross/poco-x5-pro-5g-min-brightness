@@ -15,6 +15,7 @@ until [ "$(getprop sys.boot_completed)" = 1 ] && \
   sleep 5
 done
 
+# Monitor writes to $BRIGHTNESS_FILE and call $BRIGHTNESS_SCRIPT.
 inotifyd "$BRIGHTNESS_SCRIPT" "$BRIGHTNESS_FILE:/w"
 
 exit 0

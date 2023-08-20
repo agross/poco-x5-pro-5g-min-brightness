@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# The first 3 lines contain the unquoted stuff we are interested in.
+moduleProp="$(mktemp)"
+head -n 3 module.prop > "$moduleProp"
+
+# shellcheck source=module.prop
+source "$moduleProp"
+
+rm -- "$moduleProp"
+
+mkdir -p -- releases
+
+zip="releases/${id?Need ID}-${version?Need version}-${versionCode?Need version code}.zip"
+
+zip -r "$zip" . \
+    -x '.git/*' \
+    -x .gitattributes \
+    -x .gitignore \
+    -x .shellcheckrc \
+    -x 'CHANGELOG.md' \
+    -x 'releases/*' \
+    -x 'release' \
+    -x 'README.md' \
+    -x 'update.json'
+
+gh release \
+   create \
+   "$version" \
+   "$zip" \
+   --notes-file CHANGELOG.md \
+   --title "$version"
+
+git fetch --tags origin
+
+zipUrl="$(gh release view --json assets --jq '.assets[0].url')"
+
+updateJson="$(mktemp)"
+
+jq --arg version "$version" \
+   --arg versionCode "$versionCode" \
+   --arg zipUrl "$zipUrl" \
+   '.version = $version | .versionCode = $versionCode | .zipUrl = $zipUrl' \
+   update.json > "$updateJson" &&
+  mv -- "$updateJson" update.json
